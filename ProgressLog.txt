@@ -18,3 +18,8 @@ January 26
 10:28pm - 11:00pm -> Connected VueJS project with Firebase, initialized both Firestore and Messaging. Commited changes to GitHub
 
 
+January 27
+
+10:30am - 12:35am -> Designed and developed project homepage
+
+

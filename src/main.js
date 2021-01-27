@@ -6,7 +6,8 @@ import { messaging } from "@/db";
 
 Vue.config.productionTip = false
 Vue.use(firestorePlugin)
- console.log(messaging)
+
+Vue.prototype.$messaging = messaging
 
 navigator.serviceWorker.register('/firebase-messaging-sw.js')
     .then((registration) => {
