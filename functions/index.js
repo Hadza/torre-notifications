@@ -20,8 +20,14 @@ exports.processNewJobs = functions.pubsub.schedule('every 1 minutes').onRun(() =
                     .then(res => {
                         functions.logger.log(res)
                         res.data.results.forEach(job => {
-                            if(!previous_jobs.includes(job.id))
-                                new_jobs.push(job.id)
+                            if(previous_jobs.findIndex(x => x.id === job.id) === -1)
+                                new_jobs.push({
+                                    id: job.id,
+                                    objective: job.objective,
+                                    type: job.type,
+                                    organization: job.organizations[0],
+                                    status: job.status
+                                })
                         })
                         if(new_jobs.length > 0){
                             sendNotification(user, new_jobs)
@@ -63,15 +69,29 @@ exports.getUserData = functions.https.onCall((data) => {
 });
 
 function sendNotification(user, jobs){
+    const title = 'New opportunities found!'
+    const image = 'https://res.cloudinary.com/torre-technologies-co/image/upload/v1601512321/origin/bio/organizations/Torre_logo_small_uubm3e.png'
+    let body = ""
+    let link = ""
+
+    if(jobs.length > 1){
+        body = 'You have ' + jobs.length + ' new opportunities, click to find out.'
+        link = 'https://torre.co/search/jobs?q=bestfor%3A' + user.profile.username
+    }else{
+        body = jobs[0].organization.name + ' is looking for ' + jobs[0].objective + ', see if you are a fit.'
+        link = 'https://torre.co/jobs/' + jobs[0].id
+    }
+
     let payload = {
         token:user.preferences.token,
         notification: {
-            title: 'New opportunities found!',
-            body: 'You have ' + jobs.length + ' new opportunities, click to find out.'
+            title,
+            body,
+            image
         },
         webpush: {
             fcm_options: {
-                link: jobs.length > 1 ? 'https://torre.co/search/jobs?q=bestfor%3A' + user.profile.username:'https://torre.co/jobs/' + jobs[0]
+                link
             }
         },
 
