@@ -43,14 +43,19 @@
             Just type your username and select a notification criteria, don't worry you can update or delete this later.
         </p>
       </v-col>
-      <v-col cols="12" md="4" class="py-0">
+
+      <v-col cols="6" sm="4" md="3" class="py-0">
         <v-text-field
             v-model="username"
+            class="centered-input"
             color="secondary"
             placeholder="Type your Torre username"
+            :error-messages="invalid_user ? 'Oops! I couldnt find you :(':undefined"
+            :loading="loadingUserInfo"
+            v-on:keyup.enter="getUserInfo(username)"
         >
           <template v-slot:append>
-            <v-btn color="secondary" icon>
+            <v-btn color="secondary" icon @click="getUserInfo(username)">
               <v-icon>
                 mdi-magnify
               </v-icon>
@@ -58,28 +63,20 @@
           </template>
         </v-text-field>
       </v-col>
-
-<!--      <v-col-->
-<!--        class="mb-5"-->
-<!--        cols="12"-->
-<!--      >-->
-<!--        <h2 class="headline font-weight-bold mb-3">-->
-<!--          Made with-->
-<!--        </h2>-->
-
-<!--        <v-row justify="center">-->
-<!--          <a-->
-<!--            v-for="(eco, i) in ecosystem"-->
-<!--            :key="i"-->
-<!--            :href="eco.href"-->
-<!--            class="subheading mx-3"-->
-<!--            target="_blank"-->
-<!--          >-->
-<!--            {{ eco.text }}-->
-<!--          </a>-->
-<!--        </v-row>-->
-<!--      </v-col>-->
     </v-row>
+    <v-fade-transition>
+      <v-row justify="center" class="text-center" v-show="user">
+        <v-col cols="12">
+          <v-avatar size="86">
+            <img v-if="user"
+                 :src="user.profile.picture"
+            >
+          </v-avatar>
+          <h3 v-if="user" class="headline font-weight-bold mb-3">{{ user.profile.name }}</h3>
+          <v-btn color="secondary" outlined>Notify me!</v-btn>
+        </v-col>
+      </v-row>
+    </v-fade-transition>
   </v-container>
 </template>
 
@@ -92,26 +89,30 @@ export default {
     data: () => ({
       documents:[],
       username: '',
-      ecosystem: [
-        {
-          text: 'VueJS',
-          href: 'https://vuejs.org',
-        },
-        {
-          text: 'Vuetify',
-          href: 'https://github.com/vuetifyjs/vuetify',
-        },
-        {
-          text: 'Firebase',
-          href: 'https://firebase.google.com',
-        },
-      ],
+      user: undefined,
+      invalid_user: false,
+      loadingUserInfo: false,
     }),
     firestore: {
       documents: db.collection('users')
     },
     methods: {
+      async getUserInfo(username){
+        this.loadingUserInfo = true
 
+        const query = this.$functions.httpsCallable('getUserData')
+        const res = await query({username})
+
+        this.loadingUserInfo = false
+
+        this.invalid_user = !res.data
+        this.user = res.data ? res.data:undefined
+      }
     }
   }
 </script>
+<style lang="scss">
+.centered-input input {
+  text-align: center
+}
+</style>

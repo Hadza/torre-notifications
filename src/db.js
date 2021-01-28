@@ -1,6 +1,7 @@
 import firebase from 'firebase/app'
 import 'firebase/firestore'
 import 'firebase/messaging'
+import 'firebase/functions'
 
 // Initialize firebase instance
 firebase.initializeApp({
@@ -15,3 +16,4 @@ firebase.initializeApp({
 
 export const db = firebase.firestore()
 export const messaging = firebase.messaging()
+export const functions = firebase.functions()
