@@ -2,6 +2,36 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const initFunction = {}
 
+exports.processNewJobs = functions.pubsub.schedule('every 1 minutes').onRun(() => {
+    const axios = require('axios');
+    initFirebase(admin, 'processNewJobs')
+
+    admin.firestore().collection('users').get()
+        .then(snapshot => {
+            snapshot.docs.forEach(doc => {
+                let user = doc.data()
+                const previous_jobs = user.jobs ? user.jobs:[]
+                let new_jobs = []
+
+                const query = {and:[{bestfor:{username:user.profile.username}},{status:{"code":"open"}}]}
+                const page = "https://search.torre.co/opportunities/_search/?size=5"
+
+                axios.post(page, query)
+                    .then(res => {
+                        functions.logger.log(res)
+                        res.data.results.forEach(job => {
+                            if(!previous_jobs.includes(job.id))
+                                new_jobs.push(job.id)
+                        })
+                        if(new_jobs.length > 0){
+                            sendNotification(user, new_jobs)
+                            admin.firestore().collection('users').doc(user.profile.username)
+                                .update({jobs:previous_jobs.concat(new_jobs)})
+                        }
+                    })
+            })
+        })
+})
 
 exports.getUserData = functions.https.onCall((data) => {
     const axios = require('axios');
@@ -31,6 +61,34 @@ exports.getUserData = functions.https.onCall((data) => {
     })
 });
 
+function sendNotification(user, jobs){
+    let payload = {
+        token:user.preferences.token,
+        notification: {
+            title: 'New opportunities found!',
+            body: 'You have ' + jobs.length + ' new opportunities, click to find out.'
+        },
+        webpush: {
+            fcm_options: {
+                link: jobs.length > 1 ? 'https://torre.co/search/jobs?q=bestfor%3A' + user.profile.username:'https://torre.co/jobs/' + jobs[0].id
+            }
+        },
+
+    }
+
+    admin.messaging().send(payload)
+        .then(res => {
+            functions.logger.log('jalo')
+            functions.logger.log(res)
+        }).catch(err => {
+        functions.logger.log('error')
+        functions.logger.log(err)
+    })
+}
+
+//Checks if this instance was created previously
+//and keeps firebase from initializing and impact
+//performance.
 function initFirebase(admin,name){
     if(!initFunction[name]){
         functions.logger.info(name + ' - Initialized')

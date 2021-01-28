@@ -31,4 +31,13 @@ January 27
 
 7:30pm - 9:22pm -> Finished the ask for notification permissions, save, update and delete user on firebase.
 
+10:10pm - 11:20pm -> Started developing the Pub/Sub, this will be checking every 5 minutes for new job opportunities and marking
+                     the ones already sent through notifications, the first thing to do will be fetching and storing the job ID's
+                     on the user document on firebase.
+                     Finished the pub/sub.
+
+January 28
+
+11:20am -
+
 

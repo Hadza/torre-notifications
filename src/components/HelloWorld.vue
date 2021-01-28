@@ -128,6 +128,7 @@ export default {
         .then(() => this.$messaging.getToken())
         .then(token => {
           this.user.preferences.token = token
+          this.user.jobs = []
           db.collection('users').doc(this.user.profile.username).set(this.user, { merge:true })
         })
         .finally(()=> {
