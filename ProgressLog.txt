@@ -38,6 +38,14 @@ January 27
 
 January 28
 
-11:20am -
+11:20am - 12:19pm -> Finished basic functionality, app now registers device and username and sends a notification everytime a new job
+                     is listed on "Best for me" filter.
+
+12:28pm -> For testing purposes, I decided to show a list of the last job notifications and the ability to mark them as unread to
+           force the notification to trigger again.
+
+12:45:pm ->
+
+
 
 

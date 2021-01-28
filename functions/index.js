@@ -14,7 +14,7 @@ exports.processNewJobs = functions.pubsub.schedule('every 1 minutes').onRun(() =
                 let new_jobs = []
 
                 const query = {and:[{bestfor:{username:user.profile.username}},{status:{"code":"open"}}]}
-                const page = "https://search.torre.co/opportunities/_search/?size=5"
+                const page = "https://search.torre.co/opportunities/_search/?size=10"
 
                 axios.post(page, query)
                     .then(res => {
@@ -52,7 +52,8 @@ exports.getUserData = functions.https.onCall((data) => {
                     }
 
                     if(snapshot.exists){
-                        response.preferences = snapshot.data()
+                        const user = snapshot.data()
+                        response.preferences = user.preferences
                     }
                     return response
                 })
@@ -70,7 +71,7 @@ function sendNotification(user, jobs){
         },
         webpush: {
             fcm_options: {
-                link: jobs.length > 1 ? 'https://torre.co/search/jobs?q=bestfor%3A' + user.profile.username:'https://torre.co/jobs/' + jobs[0].id
+                link: jobs.length > 1 ? 'https://torre.co/search/jobs?q=bestfor%3A' + user.profile.username:'https://torre.co/jobs/' + jobs[0]
             }
         },
 

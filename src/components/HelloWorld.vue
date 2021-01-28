@@ -77,7 +77,7 @@
           <v-btn
               v-if="user.preferences.token"
               color="warning"
-              outlined
+              text
               @click="disableNotifications"
               :loading="loading"
           >
@@ -142,7 +142,7 @@ export default {
 
         })
         .finally(() => {
-          this.message = "Bye bye :(, you can always come back!"
+          this.message = "Bye bye, you can always come back!"
           this.user = undefined
           this.loading = false
         })
