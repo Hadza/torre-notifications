@@ -6,11 +6,11 @@
           :src="require('../assets/logo.png')"
           class="my-3"
           contain
-          height="200"
+          height="100"
         />
       </v-col>
 
-      <v-col class="mb-4">
+      <v-col>
         <h1 class="display-2 font-weight-bold mb-3">
           Tired of checking your email?
         </h1>
@@ -26,7 +26,7 @@
         <h2 class="headline font-weight-bold mb-3">
           Really? but how does it works?
         </h2>
-        <p class="subheading font-weight-regular text--secondary">
+        <p class="subheading font-weight-regular text--secondary mb-2">
           You only need to subscribe using your Torre username,
           grant notification permissions and you will start receiving
           new job alerts directly on your device (phone, tablet, desktop, etc.).
@@ -62,18 +62,28 @@
             </v-btn>
           </template>
         </v-text-field>
+        <h3>{{ message }}</h3>
       </v-col>
     </v-row>
     <v-fade-transition>
       <v-row justify="center" class="text-center" v-show="user">
-        <v-col cols="12">
+        <v-col cols="12"  v-if="user">
           <v-avatar size="86">
-            <img v-if="user"
+            <img
                  :src="user.profile.picture"
             >
           </v-avatar>
           <h3 v-if="user" class="headline font-weight-bold mb-3">{{ user.profile.name }}</h3>
-          <v-btn color="secondary" outlined>Notify me!</v-btn>
+          <v-btn
+              v-if="user.preferences.token"
+              color="warning"
+              outlined
+              @click="disableNotifications"
+              :loading="loading"
+          >
+            Disable notifications
+          </v-btn>
+          <v-btn v-else color="secondary" outlined :loading="loading" @click="askForPermissions">Notify me!</v-btn>
         </v-col>
       </v-row>
     </v-fade-transition>
@@ -89,9 +99,11 @@ export default {
     data: () => ({
       documents:[],
       username: '',
+      message: 'Nothing yet...',
       user: undefined,
       invalid_user: false,
       loadingUserInfo: false,
+      loading: false,
     }),
     firestore: {
       documents: db.collection('users')
@@ -107,6 +119,33 @@ export default {
 
         this.invalid_user = !res.data
         this.user = res.data ? res.data:undefined
+        this.user.profile.username = username
+        this.message = 'I found you!'
+      },
+      askForPermissions(){
+        this.loading = true
+        this.$messaging.requestPermission()
+        .then(() => this.$messaging.getToken())
+        .then(token => {
+          this.user.preferences.token = token
+          db.collection('users').doc(this.user.profile.username).set(this.user, { merge:true })
+        })
+        .finally(()=> {
+          this.loading = false
+        })
+      },
+      async disableNotifications(){
+        this.loading = true
+        db.collection('users').doc(this.user.profile.username).delete()
+        .catch(() => {
+
+        })
+        .finally(() => {
+          this.message = "Bye bye :(, you can always come back!"
+          this.user = undefined
+          this.loading = false
+        })
+
       }
     }
   }

@@ -29,4 +29,6 @@ January 27
 
 4:00pm - 7:22pm -> Finished the fetch algorithm on cloud functions and is now showing correctly on the front-end.
 
+7:30pm - 9:22pm -> Finished the ask for notification permissions, save, update and delete user on firebase.
+
 

@@ -18,7 +18,7 @@ exports.getUserData = functions.https.onCall((data) => {
                             name: res.data.person.name,
                             picture: res.data.person.picture
                         },
-                        preferences: undefined
+                        preferences: {}
                     }
 
                     if(snapshot.exists){
