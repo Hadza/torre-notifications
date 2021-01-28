@@ -17,3 +17,4 @@ firebase.initializeApp({
 export const db = firebase.firestore()
 export const messaging = firebase.messaging()
 export const functions = firebase.functions()
+export const arrayRemove = firebase.firestore.FieldValue.arrayRemove
