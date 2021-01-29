@@ -56,7 +56,7 @@
             placeholder="Type your Torre username"
             outlined
             :error-messages="user_not_found ? 'Oops! I couldnt find you :(':undefined"
-            :loading="loadingUserInfo"
+            :loading="loading_user_info"
             v-on:keyup.enter="getUserInfo(username)"
         >
           <template v-slot:append>
@@ -78,37 +78,11 @@
             >
           </v-avatar>
           <h3 v-if="user" class="headline font-weight-bold mb-3">{{ user.profile.name }}</h3>
+
           <template v-if="user.preferences.token">
             <v-expand-transition>
               <v-row justify="center" v-show="user_loaded">
-                <v-col cols="12" sm="8" md="6">
-                  <h3 class="mb-2">Your latest job alerts</h3>
-                  <v-list two-line v-if="user.jobs.length > 0" class="mb-2">
-                    <template v-for="(job, index) in this.user.jobs">
-                      <v-divider v-if="index !== 0" :key="index"></v-divider>
-                      <v-list-item :key="job.id" class="text-start">
-                        <v-list-item-avatar>
-                          <v-img :src="job.organization.picture"></v-img>
-                        </v-list-item-avatar>
-                        <v-list-item-content>
-                          <v-list-item-title v-html="job.objective"></v-list-item-title>
-                          <v-list-item-subtitle v-html="job.organization.name"></v-list-item-subtitle>
-                        </v-list-item-content>
-                        <v-list-item-action>
-                          <v-btn icon v-if="!test_mode"
-                                 :href="'https://torre.co/jobs/' + job.id"
-                                 target="_blank"
-                          >
-                            <v-icon color="secondary lighten-1">mdi-open-in-new</v-icon>
-                          </v-btn>
-                          <v-btn icon v-else @click="deleteJobRecord(job)" :loading="loading">
-                            <v-icon color="error lighten-1">mdi-delete</v-icon>
-                          </v-btn>
-                        </v-list-item-action>
-                      </v-list-item>
-                    </template>
-                  </v-list>
-                </v-col>
+                <JobList v-if="user.jobs" :user="user" :test_mode="test_mode" @delete-job="deleteJobRecord"></JobList>
               </v-row>
             </v-expand-transition>
             <p class="subheading font-weight-regular text--secondary" v-show="test_mode">
@@ -120,7 +94,7 @@
               you must close this tab or select another one in your browser in order to receive the
               notification.
             </p>
-            <v-btn v-show="user.jobs.length > 0" color="secondary" text small @click="test_mode = !test_mode">
+            <v-btn v-if="user.jobs && user.jobs.length > 0" color="secondary" text small @click="test_mode = !test_mode">
               {{ test_mode ? 'Disable test mode':'Enable test mode' }}
             </v-btn>
             <v-btn
@@ -133,6 +107,7 @@
               Disable notifications
             </v-btn>
           </template>
+
           <v-btn v-else color="secondary" outlined :loading="loading" @click="askForPermissions">Notify me!</v-btn>
         </v-col>
       </v-row>
@@ -142,28 +117,32 @@
 
 <script>
 import {db, arrayRemove} from "@/db";
+import JobList from "@/components/JobList";
 const users = db.collection('users')
 
-export default {
-    name: 'HelloWorld',
 
+export default {
+    name: 'Home',
+    components:{
+      JobList
+    },
     data: () => ({
       username: '',
       user: undefined,
       user_loaded: false,
       user_not_found: false,
-      loadingUserInfo: false,
+      loading_user_info: false,
       loading: false,
       test_mode: false,
     }),
     methods: {
       async getUserInfo(username){
-        this.loadingUserInfo = true
+        this.loading_user_info = true
 
         const query = this.$functions.httpsCallable('getUserData')
         const res = await query({username})
 
-        this.loadingUserInfo = false
+        this.loading_user_info = false
 
         this.user_not_found = !res.data
         if(this.user_not_found){
@@ -171,7 +150,7 @@ export default {
           this.$unbind('user')
         }else{
           this.user = res.data
-
+          this.user.profile.username = this.username
           if(this.user.preferences.token){
             this.user_loaded = true
             this.$bind('user', users.doc(this.username))
@@ -187,6 +166,7 @@ export default {
         .then(token => {
           this.user.preferences.token = token
           this.user.jobs = []
+          console.log(this.user)
           users.doc(this.user.profile.username).set(this.user, { merge:true })
         })
         .finally(()=> {
@@ -198,8 +178,13 @@ export default {
       async disableNotifications(){
         this.loading = true
         users.doc(this.user.profile.username).delete()
-        .catch(() => {
-
+        .catch(err => {
+          document.dispatchEvent(new CustomEvent('showSnack', {
+            detail: {
+              color: 'error darken-2',
+              message: err.code + ' - There was an error when trying to disable notifications, try again later.'
+            }
+          }))
         })
         .finally(() => {
           this.user = undefined
@@ -208,14 +193,14 @@ export default {
 
       },
       deleteJobRecord(job){
-        this.loading = true
-
         users.doc(this.user.profile.username).update({ jobs: arrayRemove(job)})
-        .finally(()=> {
-          this.loading = false
-        })
         .catch(err => {
-          console.log(err)
+          document.dispatchEvent(new CustomEvent('showSnack', {
+            detail: {
+              color: 'error darken-2',
+              message: err.code + ' - There was an error when trying to delete this job, try again later.'
+            }
+          }))
         })
       }
     }

@@ -29,26 +29,39 @@
       </v-btn>
     </v-app-bar>
     <v-main>
-      <HelloWorld/>
+      <Home/>
+      <v-snackbar v-model="snackbar" app  class="text-center" tile text top right :color="snackbarColor" :timeout="5000">
+        {{snackbarMessage}}
+      </v-snackbar>
     </v-main>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
+import Home from './components/Home';
 
 export default {
   name: 'App',
 
   components: {
-    HelloWorld,
+    Home,
   },
 
   data: () => ({
-    //
+    snackbar: false,
+    snackbarColor: '',
+    snackbarMessage: '',
   }),
-  mounted() {
+  created(){
     this.$vuetify.theme.dark = true
-  }
+    document.addEventListener('showSnack',this.showSnackbar)
+  },
+  methods:{
+    showSnackbar(data){
+      this.snackbarColor = data.detail.color
+      this.snackbarMessage = data.detail.message
+      this.snackbar = true
+    },
+  },
 };
 </script>

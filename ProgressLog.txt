@@ -50,6 +50,10 @@ January 28
 2:30pm - 4:48pm -> Front-end updated to show the list of the last job notifications, this list is shown to every user but
                    there's a test mode button, this will help to delete job alerts to receive them later through notifications
 
+5:15pm - 5:58pm -> Tidying up everything, cleaning some code, testing functionality
+
+6:00pm -> Preparing deliverables and writing GitHub readme
+
 
 
 

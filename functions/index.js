@@ -98,10 +98,7 @@ function sendNotification(user, jobs){
     }
 
     admin.messaging().send(payload)
-        .then(res => {
-            functions.logger.log('jalo')
-            functions.logger.log(res)
-        }).catch(err => {
+        .catch(err => {
         functions.logger.log('error')
         functions.logger.log(err)
     })
